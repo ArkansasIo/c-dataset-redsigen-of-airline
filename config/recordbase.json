@@ -1,0 +1,9 @@
+{
+  "application": {"name":"RecordBase","version":"2.1.0","environment":"development"},
+  "paths": {"data":"data","database":"database","logs":"logs","docs":"docs"},
+  "database": {"engine":"mysql","host":"127.0.0.1","port":3306,"name":"recordbase","user":"recordbase_app","pool_size":8},
+  "api": {"host":"0.0.0.0","port":8080,"prefix":"/api/v1"},
+  "hierarchy": {"root":"recordbase","levels":["tree","subtree","branch","subbranch","node","subnode","module","submodule","data"],"strict_parent_validation":true,"unique_ids":true},
+  "validation": {"strict":true,"reject_duplicate_ids":true,"reject_orphans":true,"require_dataset_before_transaction":true,"require_entry_before_transaction":true},
+  "logging": {"level":"info","file":"logs/recordbase.log"}
+}
