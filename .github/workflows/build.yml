@@ -1,0 +1,49 @@
+name: C++ Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Clang
+        run: sudo apt-get update && sudo apt-get install -y clang
+
+      - name: Build recordbase with strict warnings
+        run: |
+          clang++ -std=c++23 -Wall -Wextra -Wpedantic -Wconversion -Wshadow -g \
+            src/catalog.cpp src/dataset.cpp src/entry.cpp src/transaction.cpp \
+            src/index_key.cpp src/storage.cpp src/menus.cpp src/main.cpp \
+            -o recordbase
+
+      - name: Build CSV importer
+        run: |
+          clang -std=c17 -Wall -Wextra -Wpedantic -g \
+            src/csv_import.c -o csv_import
+
+      - name: Sanitizer build
+        run: |
+          clang++ -std=c++23 -Wall -Wextra -Wpedantic -g \
+            -fsanitize=address,undefined -fno-omit-frame-pointer \
+            src/catalog.cpp src/dataset.cpp src/entry.cpp src/transaction.cpp \
+            src/index_key.cpp src/storage.cpp src/menus.cpp src/main.cpp \
+            -o recordbase-sanitize
+
+      - name: Smoke test recordbase
+        run: |
+          printf '5\n' | ./recordbase
+
+      - name: Smoke test CSV importer
+        run: |
+          ./csv_import --help || true
