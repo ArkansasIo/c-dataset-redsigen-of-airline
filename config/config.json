@@ -1,14 +1,14 @@
 {
   "app": {
-    "name": "Airport Control - Airline Reservation System",
-    "version": "1.0.0",
+    "name": "RecordBase - Records Database System",
+    "version": "2.0.0",
     "author": "apocalypse coder0"
   },
   "database": {
     "driver": "mysql",
     "host": "localhost",
     "port": 3306,
-    "name": "airport_control",
+    "name": "recordbase",
     "user": "root",
     "password": "",
     "charset": "utf8mb4",
@@ -31,17 +31,17 @@
       ]
     }
   },
-  "seats": {
+  "rows": {
     "default_total": 150,
-    "max_per_passenger": 4
+    "max_per_entry": 4
   },
   "dataset": {
     "path": "database/dataset.sql",
-    "airline_file": "airline.txt",
+    "database_file": "database.dat",
     "save_on_exit": true
   },
   "logging": {
     "level": "info",
-    "file": "logs/airport.log"
+    "file": "logs/recordbase.log"
   }
 }

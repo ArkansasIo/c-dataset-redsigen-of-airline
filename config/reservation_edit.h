@@ -1,14 +1,14 @@
 /*
  * reservation_edit.h
- * C structures mirroring the reservation database tree so the
- * console program (access navigation control.cpp) can edit the same
+ * C structures mirroring the transaction database tree so the
+ * console program (database navigation control.cpp) can edit the same
  * hierarchy that the MySQL schema and API expose.
  *
- *   reservation (tree root)
- *     -> reservation_node        (sub-node / subtree)
- *        -> reservation_branch   (branch)
- *           -> reservation_sub_branch (sub-branch)
- *              -> reservation_module (modular leaf)
+ *   transaction (tree root)
+ *     -> tree_node        (sub-node / subtree)
+ *        -> tree_branch   (branch)
+ *           -> tree_sub_branch (sub-branch)
+ *              -> tree_module (modular leaf)
  */
 #ifndef RESERVATION_EDIT_H
 #define RESERVATION_EDIT_H
@@ -17,49 +17,49 @@
 #include <string.h>
 
 /* Modular leaf unit */
-struct reservation_module
+struct tree_module
 {
     char *module_name;
     char *module_value;
-    struct reservation_module *next;
+    struct tree_module *next;
 };
 
 /* Sub-branch */
-struct reservation_sub_branch
+struct tree_sub_branch
 {
     char *sub_branch_name;
-    struct reservation_module *modules;
-    struct reservation_sub_branch *next;
+    struct tree_module *modules;
+    struct tree_sub_branch *next;
 };
 
 /* Branch */
-struct reservation_branch
+struct tree_branch
 {
     char *branch_name;
-    struct reservation_sub_branch *sub_branches;
-    struct reservation_branch *next;
+    struct tree_sub_branch *sub_branches;
+    struct tree_branch *next;
 };
 
 /* Sub-node / subtree */
-struct reservation_node
+struct tree_node
 {
     char *node_name;
-    char *seat_assignment;
+    char *index_key;
     int available;
-    struct reservation_branch *branches;
-    struct reservation_node *next;     /* sibling */
-    struct reservation_node *children; /* subtree */
+    struct tree_branch *branches;
+    struct tree_node *next;     /* sibling */
+    struct tree_node *children; /* subtree */
 };
 
-/* Reservation tree root */
-struct reservation_tree
+/* Transaction tree root */
+struct transaction_tree
 {
-    char *reservation_id; /* unique key */
-    char *passenger_id;
-    char *flight_number;
-    double cost;
-    struct reservation_node *nodes;
-    struct reservation_tree *next;
+    char *transaction_id; /* unique key */
+    char *entry_id;
+    char *dataset_id;
+    double amount;
+    struct tree_node *nodes;
+    struct transaction_tree *next;
 };
 
 /* Helper: allocate a modifiable copy of a string */

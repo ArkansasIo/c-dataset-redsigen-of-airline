@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RecordBase - Records Database Console</title>
+<style>
+  body { font-family: "Segoe UI", Arial, sans-serif; background:#10161f; color:#dbe4f0;
+         margin:0; padding:2rem; }
+  h1 { color:#7fd1ff; margin-top:0; }
+  h1 small { color:#5a6b82; font-size:.5em; display:block; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; max-width:1100px; }
+  .card { background:#182234; border:1px solid #263349; border-radius:10px; padding:1rem 1.2rem; }
+  h2 { font-size:1rem; color:#9fb3cc; text-transform:uppercase; letter-spacing:.08em;
+       margin:.2rem 0 .6rem; }
+  table { width:100%; border-collapse:collapse; font-size:.85rem; }
+  th, td { text-align:left; padding:.3rem .45rem; border-bottom:1px solid #223047; }
+  th { color:#7fd1ff; }
+  .stats { display:flex; gap:1.5rem; flex-wrap:wrap; margin-bottom:1.2rem; max-width:1100px; }
+  .stat { background:#182234; border:1px solid #263349; border-radius:10px;
+          padding:.7rem 1.2rem; text-align:center; }
+  .stat b { display:block; font-size:1.4rem; color:#7fd1ff; }
+  button { background:#264a6d; color:#dbe4f0; border:0; border-radius:6px;
+           padding:.35rem .8rem; cursor:pointer; }
+  button.del { background:#6d2a2a; }
+  input { background:#0d1420; color:#dbe4f0; border:1px solid #263349;
+          border-radius:6px; padding:.35rem .5rem; }
+  form { display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.6rem; }
+</style>
+</head>
+<body>
+  <h1>RecordBase <small>records database console - backend: http://localhost:8080/api</small></h1>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Catalogs</h2>
+      <table id="catalogs"><thead><tr><th>ID</th><th>Name</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Datasets (sorted by start time)</h2>
+      <table id="datasets"><thead>
+        <tr><th>ID</th><th>Catalog</th><th>Source → Target</th><th>Rows</th></tr>
+      </thead><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h2>Transactions</h2>
+      <table id="transactions"><thead>
+        <tr><th>ID</th><th>Entry</th><th>Dataset</th><th>Amount</th><th></th></tr>
+      </thead><tbody></tbody></table>
+      <form id="addForm">
+        <input name="transaction_id" placeholder="T0013" required>
+        <input name="entry_id" placeholder="E0001" required>
+        <input name="dataset_id" placeholder="PR101" required>
+        <input name="amount" placeholder="100.00" required>
+        <button>Add</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Entries</h2>
+      <table id="entries"><thead>
+        <tr><th>ID</th><th>Name</th><th>City</th></tr>
+      </thead><tbody></tbody></table>
+    </div>
+  </div>
+
+<script>
+const api = p => fetch("/api/" + p).then(r => r.json());
+
+async function refresh() {
+  const [stats, cats, dsets, trans, entries] = await Promise.all(
+    ["stats", "catalogs", "datasets", "transactions", "entries"].map(api));
+
+  document.getElementById("stats").innerHTML = [
+    ["Catalogs", stats.catalog], ["Datasets", stats.dataset],
+    ["Entries", stats.entry], ["Transactions", stats.transaction_tbl],
+    ["Total Amount", stats.amount_total.toFixed(2)]
+  ].map(([l, v]) => `<div class="stat"><b>${v}</b>${l}</div>`).join("");
+
+  document.querySelector("#catalogs tbody").innerHTML = cats.map(c =>
+    `<tr><td>${c.catalog_id}</td><td>${c.catalogname}</td></tr>`).join("");
+
+  document.querySelector("#datasets tbody").innerHTML = dsets.map(d =>
+    `<tr><td>${d.dataset_id}</td><td>${d.catalogname}</td>
+     <td>${d.source_table} → ${d.target_table}</td><td>${d.total_rows}</td></tr>`).join("");
+
+  document.querySelector("#transactions tbody").innerHTML = trans.map(t =>
+    `<tr><td>${t.transaction_id}</td><td>${t.name}</td><td>${t.dataset_id}</td>
+     <td>${t.amount.toFixed(2)}</td>
+     <td><button class="del" onclick="delTx('${t.transaction_id}')">×</button></td></tr>`).join("");
+
+  document.querySelector("#entries tbody").innerHTML = entries.map(e =>
+    `<tr><td>${e.entry_id}</td><td>${e.name}</td><td>${e.city}</td></tr>`).join("");
+}
+
+async function delTx(id) {
+  await fetch("/api/transactions/" + id, { method: "DELETE" });
+  refresh();
+}
+
+document.getElementById("addForm").onsubmit = async ev => {
+  ev.preventDefault();
+  const f = ev.target;
+  await fetch("/api/transactions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(Object.fromEntries(new FormData(f)))
+  });
+  f.reset();
+  refresh();
+};
+
+refresh();
+</script>
+</body>
+</html>

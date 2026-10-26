@@ -1,13 +1,13 @@
 /*
  * csv_loader.h
- * CSV data import for the Airline Reservation System.
+ * CSV data import for the catalog transaction System.
  *
  * Loads the files in the data/ directory:
- *   airlines.csv          -> list of airline names
- *   flights.csv           -> airline + flight records
- *   passengers.csv        -> passenger records
- *   reservations.csv      -> reservation records (unique keys)
- *   seat_assignments.csv  -> seat map per flight
+ *   catalogs.csv           -> list of catalog names
+ *   datasets.csv           -> catalog + dataset records
+ *   entries.csv            -> entry records
+ *   transactions.csv       -> transaction records (unique keys)
+ *   indexes.csv            -> index key map per dataset
  *
  * These mirror the same structures used by access navigation control.cpp
  * and the MySQL schema in database/schema.sql.
@@ -101,10 +101,10 @@ static FILE *csv_open(const char *filename)
 
 /* ---------- CSV record loaders ---------- */
 
-/* Load airline names: "airlinename" */
-static int csv_load_airlines(char ***names_out)
+/* Load catalog names: "catalogname" */
+static int csv_load_catalogs(char ***names_out)
 {
-    FILE *fp = csv_open("airlines.csv");
+    FILE *fp = csv_open("catalogs.csv");
     if (!fp)
         return 0;
 
@@ -129,29 +129,29 @@ static int csv_load_airlines(char ***names_out)
     return count;
 }
 
-/* One flight record */
-struct csv_flight
+/* One dataset record */
+struct csv_dataset
 {
-    char *airline;
-    char *flightnumber;
+    char *catalog;
+    char *dataset_id;
     char *date;
     char *departure;
     char *arrival;
     char *takeoff;
     char *arrivetime;
-    int total_seats;
-    int seats_booked;
+    int total_rows;
+    int rows_indexed;
 };
 
-/* Load flights: "airline,flightnumber,date,departure,arrival,takeoff,arrivetime,total,booked" */
-static int csv_load_flights(struct csv_flight **out)
+/* Load datasets: "catalog,dataset_id,date,departure,arrival,takeoff,arrivetime,total,booked" */
+static int csv_load_datasets(struct csv_dataset **out)
 {
-    FILE *fp = csv_open("flights.csv");
+    FILE *fp = csv_open("datasets.csv");
     if (!fp)
         return 0;
 
     int count = 0, cap = 16;
-    struct csv_flight *rows = (struct csv_flight *)malloc(cap * sizeof(*rows));
+    struct csv_dataset *rows = (struct csv_dataset *)malloc(cap * sizeof(*rows));
     char line[MAX_LINE];
 
     while (fgets(line, sizeof(line), fp))
@@ -162,21 +162,21 @@ static int csv_load_flights(struct csv_flight **out)
         if (count == cap)
         {
             cap *= 2;
-            rows = (struct csv_flight *)realloc(rows, cap * sizeof(*rows));
+            rows = (struct csv_dataset *)realloc(rows, cap * sizeof(*rows));
         }
-        struct csv_flight *r = &rows[count];
-        r->airline = csv_field(line, 0);
-        r->flightnumber = csv_field(line, 1);
+        struct csv_dataset *r = &rows[count];
+        r->catalog = csv_field(line, 0);
+        r->dataset_id = csv_field(line, 1);
         r->date = csv_field(line, 2);
         r->departure = csv_field(line, 3);
         r->arrival = csv_field(line, 4);
         r->takeoff = csv_field(line, 5);
         r->arrivetime = csv_field(line, 6);
         char *ts = csv_field(line, 7);
-        r->total_seats = atoi(ts);
+        r->total_rows = atoi(ts);
         free(ts);
         char *sb = csv_field(line, 8);
-        r->seats_booked = atoi(sb);
+        r->rows_indexed = atoi(sb);
         free(sb);
         ++count;
     }
@@ -185,8 +185,8 @@ static int csv_load_flights(struct csv_flight **out)
     return count;
 }
 
-/* One passenger record */
-struct csv_passenger
+/* One entry record */
+struct csv_entry
 {
     char *suffix;
     char *name;
@@ -198,15 +198,15 @@ struct csv_passenger
     char *weight;
 };
 
-/* Load passengers: "suffix,name,id,address,city,gender,dob,weight" */
-static int csv_load_passengers(struct csv_passenger **out)
+/* Load entries: "suffix,name,id,address,city,gender,dob,weight" */
+static int csv_load_entries(struct csv_entry **out)
 {
-    FILE *fp = csv_open("passengers.csv");
+    FILE *fp = csv_open("entries.csv");
     if (!fp)
         return 0;
 
     int count = 0, cap = 16;
-    struct csv_passenger *rows = (struct csv_passenger *)malloc(cap * sizeof(*rows));
+    struct csv_entry *rows = (struct csv_entry *)malloc(cap * sizeof(*rows));
     char line[MAX_LINE];
 
     while (fgets(line, sizeof(line), fp))
@@ -217,9 +217,9 @@ static int csv_load_passengers(struct csv_passenger **out)
         if (count == cap)
         {
             cap *= 2;
-            rows = (struct csv_passenger *)realloc(rows, cap * sizeof(*rows));
+            rows = (struct csv_entry *)realloc(rows, cap * sizeof(*rows));
         }
-        struct csv_passenger *r = &rows[count];
+        struct csv_entry *r = &rows[count];
         r->suffix = csv_field(line, 0);
         r->name = csv_field(line, 1);
         r->id = csv_field(line, 2);
@@ -235,24 +235,24 @@ static int csv_load_passengers(struct csv_passenger **out)
     return count;
 }
 
-/* One reservation record */
-struct csv_reservation
+/* One transaction record */
+struct csv_transaction
 {
     char *id;
-    char *passenger_id;
-    char *flight_number;
+    char *entry_id;
+    char *dataset_id;
     char *cost;
 };
 
-/* Load reservations: "id,passenger_id,flight_number,cost" */
-static int csv_load_reservations(struct csv_reservation **out)
+/* Load transactions: "id,entry_id,dataset_id,cost" */
+static int csv_load_transactions(struct csv_transaction **out)
 {
-    FILE *fp = csv_open("reservations.csv");
+    FILE *fp = csv_open("transactions.csv");
     if (!fp)
         return 0;
 
     int count = 0, cap = 16;
-    struct csv_reservation *rows = (struct csv_reservation *)malloc(cap * sizeof(*rows));
+    struct csv_transaction *rows = (struct csv_transaction *)malloc(cap * sizeof(*rows));
     char line[MAX_LINE];
 
     while (fgets(line, sizeof(line), fp))
@@ -263,11 +263,11 @@ static int csv_load_reservations(struct csv_reservation **out)
         if (count == cap)
         {
             cap *= 2;
-            rows = (struct csv_reservation *)realloc(rows, cap * sizeof(*rows));
+            rows = (struct csv_transaction *)realloc(rows, cap * sizeof(*rows));
         }
         rows[count].id = csv_field(line, 0);
-        rows[count].passenger_id = csv_field(line, 1);
-        rows[count].flight_number = csv_field(line, 2);
+        rows[count].entry_id = csv_field(line, 1);
+        rows[count].dataset_id = csv_field(line, 2);
         rows[count].cost = csv_field(line, 3);
         ++count;
     }
@@ -276,25 +276,25 @@ static int csv_load_reservations(struct csv_reservation **out)
     return count;
 }
 
-/* One seat assignment record */
-struct csv_seat
+/* One index key record */
+struct csv_index_key
 {
-    char *flight_number;
-    char *seat;
-    char *passenger_id;
+    char *dataset_id;
+    char *index_key;
+    char *entry_id;
     int available;
     char *cost;
 };
 
-/* Load seat assignments: "flight_number,seat,passenger_id,available,cost" */
-static int csv_load_seats(struct csv_seat **out)
+/* Load index keys: "dataset_id,index_key,entry_id,available,amount" */
+static int csv_load_indexes(struct csv_index_key **out)
 {
-    FILE *fp = csv_open("seat_assignments.csv");
+    FILE *fp = csv_open("indexes.csv");
     if (!fp)
         return 0;
 
     int count = 0, cap = 16;
-    struct csv_seat *rows = (struct csv_seat *)malloc(cap * sizeof(*rows));
+    struct csv_index_key *rows = (struct csv_index_key *)malloc(cap * sizeof(*rows));
     char line[MAX_LINE];
 
     while (fgets(line, sizeof(line), fp))
@@ -305,12 +305,12 @@ static int csv_load_seats(struct csv_seat **out)
         if (count == cap)
         {
             cap *= 2;
-            rows = (struct csv_seat *)realloc(rows, cap * sizeof(*rows));
+            rows = (struct csv_index_key *)realloc(rows, cap * sizeof(*rows));
         }
-        struct csv_seat *r = &rows[count];
-        r->flight_number = csv_field(line, 0);
-        r->seat = csv_field(line, 1);
-        r->passenger_id = csv_field(line, 2);
+        struct csv_index_key *r = &rows[count];
+        r->dataset_id = csv_field(line, 0);
+        r->index_key = csv_field(line, 1);
+        r->entry_id = csv_field(line, 2);
         char *av = csv_field(line, 3);
         r->available = atoi(av);
         free(av);

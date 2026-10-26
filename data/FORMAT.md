@@ -1,66 +1,66 @@
-# Airport Control - Data File Formats
+# RecordBase - Data File Formats
 
 All files live in `data/` and use UTF-8 CSV with a header row on line 1.
 Comma is the field separator; fields may be double-quoted.
 
-## airlines.csv
+## catalogs.csv
 | Column | Type | Notes |
 |--------|------|-------|
-| airlinename | string | unique airline name |
+| catalogname | string | unique catalog name |
 
-## flights.csv
+## datasets.csv
 | Column | Type | Notes |
 |--------|------|-------|
-| airlinename | string | references airlines.csv |
-| flightnumber | string | **unique key** |
-| date_of_flight | YYYY-MM-DD | |
-| departure_location | string | city |
-| arrival_location | string | city |
-| take_off_time | HH:MM | local departure time |
-| arrival_time | HH:MM | local arrival time |
-| total_seats | int | capacity |
-| seats_booked | int | must be <= total_seats |
+| catalogname | string | references catalogs.csv |
+| dataset_id | string | **unique key** |
+| date_of_dataset | YYYY-MM-DD | |
+| source_table | string | source table name |
+| target_table | string | target table name |
+| start_time | HH:MM | job start time |
+| end_time | HH:MM | job end time |
+| total_rows | int | capacity |
+| rows_indexed | int | must be <= total_rows |
 
-## passengers.csv
+## entries.csv
 | Column | Type | Notes |
 |--------|------|-------|
 | name_suffix | string | Mr., Mrs., Dr., ... |
 | name | string | full name (First Last) |
-| passenger_id | string | **unique key** (P0001...) |
+| entry_id | string | **unique key** (E0001...) |
 | address | string | |
 | city | string | |
 | gender | M/F/O | |
 | data_of_birth | YYYY-MM-DD | |
 | weight | string | e.g. 78kg |
 
-## reservations.csv
+## transactions.csv
 | Column | Type | Notes |
 |--------|------|-------|
-| reservation_id | string | **unique key** (R0001...) |
-| passenger_id | string | must exist in passengers.csv |
-| flight_number | string | must exist in flights.csv |
-| cost | decimal | ticket price |
+| transaction_id | string | **unique key** (T0001...) |
+| entry_id | string | must exist in entries.csv |
+| dataset_id | string | must exist in datasets.csv |
+| amount | decimal | transaction amount |
 
-## seat_assignments.csv
+## indexes.csv
 | Column | Type | Notes |
 |--------|------|-------|
-| flight_number | string | must exist in flights.csv |
-| seat_assignment | string | seat id, e.g. 12A |
-| passenger_id | string | empty if the seat is free |
-| available | 0/1 | 1 = seat free, 0 = seat taken |
-| cost | decimal | price for the seat |
+| dataset_id | string | must exist in datasets.csv |
+| index_key | string | key id, e.g. idx_12A |
+| entry_id | string | empty if the key is free |
+| available | 0/1 | 1 = key free, 0 = key taken |
+| amount | decimal | amount for the key |
 
 ## Integrity rules
-1. Reservation rows must reference an existing `passenger_id` and `flight_number`.
-2. Unique keys (`flightnumber`, `passenger_id`, `reservation_id`) must not repeat.
-3. `seats_booked` on a flight should equal the number of rows for that flight
-   with `available = 0` in seat_assignments.csv.
+1. Transaction rows must reference an existing `entry_id` and `dataset_id`.
+2. Unique keys (`dataset_id`, `entry_id`, `transaction_id`) must not repeat.
+3. `rows_indexed` on a dataset should equal the number of rows for that dataset
+   with `available = 0` in indexes.csv.
 
 ## Loading order
-1. `airlines.csv`
-2. `flights.csv`
-3. `passengers.csv`
-4. `reservations.csv`
-5. `seat_assignments.csv`
+1. `catalogs.csv`
+2. `datasets.csv`
+3. `entries.csv`
+4. `transactions.csv`
+5. `indexes.csv`
 
 The loader in `src/csv_loader.h` follows this order automatically.

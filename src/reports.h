@@ -1,8 +1,8 @@
 /*
  * reports.c
  * Reporting functions required by the assignment:
- *   d) show all current flights, sorted by departure time
- *   e) show all passengers on a selected flight, sorted by last name
+ *   d) show all current datasets, sorted by start time
+ *   e) show all entries on a selected dataset, sorted by last name
  *   f) summary statistics for the whole system
  *
  * These operate on the same linked lists used by
@@ -22,99 +22,99 @@ static const char *last_name(const char *name)
     return last ? last + 1 : name;
 }
 
-/* Compare flights by take-off time (and then flight number as tie-break).
- * Works on the flight structure layout of the main program. */
-struct flight_rep
+/* Compare datasets by start time (and then dataset number as tie-break).
+ * Works on the dataset structure layout of the main program. */
+struct dataset_rep
 {
-    char *flightnumber;
-    char *date_of_flight;
-    char *departure_location;
-    char *arrival_location;
-    char *take_off_time;
-    char *arrival_time;
+    char *dataset_id;
+    char *date_of_dataset;
+    char *source_table;
+    char *target_table;
+    char *start_time;
+    char *end_time;
 };
 
-static int compare_departure(const void *a, const void *b)
+static int compare_start_time(const void *a, const void *b)
 {
-    const struct flight_rep *fa = (const struct flight_rep *)a;
-    const struct flight_rep *fb = (const struct flight_rep *)b;
-    int c = strcmp(fa->take_off_time, fb->take_off_time);
+    const struct dataset_rep *fa = (const struct dataset_rep *)a;
+    const struct dataset_rep *fb = (const struct dataset_rep *)b;
+    int c = strcmp(fa->start_time, fb->start_time);
     if (c == 0)
-        c = strcmp(fa->flightnumber, fb->flightnumber);
+        c = strcmp(fa->dataset_id, fb->dataset_id);
     return c;
 }
 
-/* Report (d): all flights sorted by departure time */
-void report_flights_by_departure(struct flight_rep *flights, int count)
+/* Report (d): all datasets sorted by departure time */
+void report_datasets_by_start_time(struct dataset_rep *datasets, int count)
 {
     int i;
     printf("\n==================================================\n");
-    printf("  FLIGHT SCHEDULE (sorted by departure time)\n");
+    printf("  DATASET SCHEDULE (sorted by start time)\n");
     printf("==================================================\n");
     if (count == 0)
     {
-        printf("No flights in the system.\n");
+        printf("No datasets in the system.\n");
         return;
     }
-    qsort(flights, (size_t)count, sizeof(*flights), compare_departure);
+    qsort(datasets, (size_t)count, sizeof(*datasets), compare_start_time);
     for (i = 0; i < count; ++i)
     {
         printf("%-8s %-12s %-16s -> %-16s %5s - %s\n",
-               flights[i].flightnumber,
-               flights[i].date_of_flight,
-               flights[i].departure_location,
-               flights[i].arrival_location,
-               flights[i].take_off_time,
-               flights[i].arrival_time);
+               datasets[i].dataset_id,
+               datasets[i].date_of_dataset,
+               datasets[i].source_table,
+               datasets[i].target_table,
+               datasets[i].start_time,
+               datasets[i].end_time);
     }
 }
 
-/* Compare passengers by last name */
-struct passenger_rep
+/* Compare entries by last name */
+struct entry_rep
 {
-    char *passenger_id;
+    char *entry_id;
     char *name;
 };
 
 static int compare_last_name(const void *a, const void *b)
 {
-    const struct passenger_rep *pa = (const struct passenger_rep *)a;
-    const struct passenger_rep *pb = (const struct passenger_rep *)b;
+    const struct entry_rep *pa = (const struct entry_rep *)a;
+    const struct entry_rep *pb = (const struct entry_rep *)b;
     return strcmp(last_name(pa->name), last_name(pb->name));
 }
 
-/* Report (e): passengers on a flight, sorted by last name */
-void report_passengers_on_flight(struct passenger_rep *passengers, int count,
-                                 const char *flightnumber)
+/* Report (e): entries on a dataset, sorted by last name */
+void report_entries_on_dataset(struct entry_rep *entries, int count,
+                                 const char *dataset_id)
 {
     int i;
     printf("\n==================================================\n");
-    printf("  PASSENGERS ON FLIGHT %s (sorted by last name)\n", flightnumber);
+    printf("  ENTRIES ON DATASET %s (sorted by last name)\n", dataset_id);
     printf("==================================================\n");
     if (count == 0)
     {
-        printf("No passengers booked on this flight.\n");
+        printf("No entries on this dataset.\n");
         return;
     }
-    qsort(passengers, (size_t)count, sizeof(*passengers), compare_last_name);
+    qsort(entries, (size_t)count, sizeof(*entries), compare_last_name);
     for (i = 0; i < count; ++i)
-        printf("%-10s %s\n", passengers[i].passenger_id, passengers[i].name);
+        printf("%-10s %s\n", entries[i].entry_id, entries[i].name);
 }
 
 /* Report (f): simple system statistics */
-void report_statistics(int airlines, int flights, int passengers,
-                       int reservations, int seats_taken, int total_seats)
+void report_statistics(int catalogs, int datasets, int entries,
+                       int transactions, int rows_indexed, int total_rows)
 {
     printf("\n==================================================\n");
     printf("  SYSTEM STATISTICS\n");
     printf("==================================================\n");
-    printf("Airlines        : %d\n", airlines);
-    printf("Flights         : %d\n", flights);
-    printf("Passengers      : %d\n", passengers);
-    printf("Reservations    : %d\n", reservations);
-    printf("Seats booked    : %d of %d (%.1f%% load factor)\n",
-           seats_taken, total_seats,
-           total_seats ? (100.0 * seats_taken / total_seats) : 0.0);
+    printf("Catalogs        : %d\n", catalogs);
+    printf("Datasets        : %d\n", datasets);
+    printf("Entries         : %d\n", entries);
+    printf("Transactions    : %d\n", transactions);
+    printf("Rows indexed    : %d of %d (%.1f%% indexed)\n",
+           rows_indexed, total_rows,
+           total_rows ? (100.0 * rows_indexed / total_rows) : 0.0);
 }
 
 #endif /* REPORTS_H */
