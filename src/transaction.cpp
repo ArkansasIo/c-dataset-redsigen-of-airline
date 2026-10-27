@@ -15,22 +15,18 @@ namespace acs
         std::printf(" Welcome to the transaction List\n");
 
         std::printf("Please enter your transaction ID\n"); // unique key
-        drain_stdin();
         node->transaction_id = new char[kMaxNameLen];
         read_line(node->transaction_id, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter your entry ID\n");
-        drain_stdin();
         node->entry_id = new char[kMaxIdLen];
         read_line(node->entry_id, static_cast<int>(kMaxIdLen));
 
         std::printf("Please enter your dataset Number\n");
-        drain_stdin();
         node->dataset_id = new char[kMaxNameLen];
         read_line(node->dataset_id, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter your Cost\n");
-        drain_stdin();
         node->cost = new char[30];
         read_line(node->cost, 30);
 
@@ -88,7 +84,6 @@ namespace acs
 
         char transaction_id[80];
         std::printf("Please enter the transaction id you want to delete\n");
-        drain_stdin();
         read_line(transaction_id, 80);
 
         transaction *count_node1, *count_node2 = nullptr, *temp;
@@ -148,18 +143,13 @@ namespace acs
     transaction *transaction_menu(transaction *start4)
     {
         std::printf("\n");
-        int choice;
         std::printf("Welcome to the transaction menu\n");
         std::printf("Please enter your choice from the menu shown below\n");
         std::printf("1: Add a transaction to this dataset\n");
         std::printf("2: Delete a transaction from this dataset\n");
         std::printf("3: Display the transaction list for this dataset\n");
         std::printf("4: Return back to the dataset Menu\n");
-        if (std::scanf("%d", &choice) != 1)
-        {
-            drain_stdin();
-            choice = 0;
-        }
+        int choice = read_menu_choice();
 
         switch (choice)
         {

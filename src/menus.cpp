@@ -10,9 +10,22 @@
 
 namespace acs
 {
+    // Root of the catalog list, kept up to date by catalog_menu so that
+    // save_and_exit() can persist the whole tree from any nested menu.
+    catalog *g_root = nullptr;
+
+    // Called when stdin is closed (EOF) so the program never spins on a dead
+    // stream. Saves the in-memory database before exiting.
+    void save_and_exit()
+    {
+        std::printf("\nInput closed, saving and exiting...\n");
+        write_to_file(g_root);
+        std::exit(0);
+    }
 
     catalog *catalog_menu(catalog *start1)
     {
+        g_root = start1;
         std::printf("Welcome to the Unknow Name catalog System Main Menu\n");
         std::printf("Please enter your choice from the menu shown below\n");
         std::printf("1: Add a new catalog to this database\n");
@@ -20,12 +33,7 @@ namespace acs
         std::printf("3: Display the Catalog List in this Database\n");
         std::printf("4: Enter dataset menu for an catalog\n");
         std::printf("5: Exit the program (saves to database.dat)\n");
-        int choice;
-        if (std::scanf("%d", &choice) != 1)
-        {
-            drain_stdin();
-            choice = 0;
-        }
+        int choice = read_menu_choice();
 
         switch (choice)
         {

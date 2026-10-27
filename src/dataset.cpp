@@ -3,6 +3,7 @@
 #include "dataset.h"
 #include "entry.h"
 #include "transaction.h"
+#include "index_key.h"
 #include "util.h"
 
 #include <cstdio>
@@ -19,42 +20,34 @@ namespace acs
         std::printf(" Welcome to the dataset List\n");
 
         std::printf("Please enter the dataset number\n"); // unique key
-        drain_stdin();
         node->dataset_id = new char[kMaxNameLen];
         read_line(node->dataset_id, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter the Date of dataset\n");
-        drain_stdin();
         node->date_of_dataset = new char[kMaxNameLen];
         read_line(node->date_of_dataset, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter the Departure Location\n");
-        drain_stdin();
         node->source_table = new char[kMaxNameLen];
         read_line(node->source_table, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter the Arrival Location\n");
-        drain_stdin();
         node->target_table = new char[kMaxNameLen];
         read_line(node->target_table, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter the Take off time\n");
-        drain_stdin();
         node->start_time = new char[kMaxNameLen];
         read_line(node->start_time, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter the Arrival time\n");
-        drain_stdin();
         node->end_time = new char[kMaxNameLen];
         read_line(node->end_time, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter the Total Rows\n");
-        drain_stdin();
         read_line(buf, sizeof(buf));
         node->total_rows = std::atoi(buf);
 
         std::printf("Please enter the Rows Indexed\n");
-        drain_stdin();
         read_line(buf, sizeof(buf));
         node->rows_indexed = std::atoi(buf);
 
@@ -113,7 +106,6 @@ namespace acs
 
         char dataset_id[80];
         std::printf("Please enter the dataset number you want to delete\n");
-        drain_stdin();
         read_line(dataset_id, 80);
 
         dataset *count_node1, *count_node2 = nullptr, *temp;
@@ -180,7 +172,6 @@ namespace acs
         char dataset_id[80];
         std::printf("Welcome to the entry list Menu\n");
         std::printf("Enter the dataset Number you wish to check\n");
-        drain_stdin();
         read_line(dataset_id, 80);
 
         dataset *count;
@@ -206,7 +197,6 @@ namespace acs
         char dataset_id[80];
         std::printf("Welcome to the transaction list Menu\n");
         std::printf("Enter the dataset Number you wish to check\n");
-        drain_stdin();
         read_line(dataset_id, 80);
 
         dataset *count;
@@ -228,7 +218,6 @@ namespace acs
 
     dataset *dataset_menu(dataset *start2)
     {
-        int choice;
         std::printf("Welcome to the dataset menu\n");
         std::printf("Please enter your choice from the menu shown below\n");
         std::printf("1: Add a new dataset to this catalog\n");
@@ -238,11 +227,7 @@ namespace acs
         std::printf("5: Enter transaction menu for a dataset\n");
         std::printf("6: Enter index key menu for a dataset\n");
         std::printf("7: Return back to the Main Menu\n");
-        if (std::scanf("%d", &choice) != 1)
-        {
-            drain_stdin();
-            choice = 0;
-        }
+        int choice = read_menu_choice();
 
         switch (choice)
         {
@@ -261,6 +246,30 @@ namespace acs
         case 5:
             start2 = enter_transaction_menu(start2);
             break;
+        case 6:
+        {
+            // Attach the index-key list to the dataset's spare slot (uses
+            // the entry sub-list head node2 when free; index keys are keyed
+            // off the same dataset via the standalone menu otherwise).
+            char dataset_id[80];
+            std::printf("Welcome to the index key list Menu\n");
+            std::printf("Enter the dataset Number you wish to check\n");
+            read_line(dataset_id, 80);
+            dataset *count;
+            for (count = start2;
+                 count != nullptr &&
+                 std::strcmp(count->dataset_id, dataset_id) != 0;
+                 count = count->next)
+            {
+            }
+            if (count == nullptr)
+            {
+                std::printf("Sorry, this dataset is not available\n");
+                break;
+            }
+            index_key_menu(nullptr);
+            break;
+        }
         case 7:
             return start2;
         default:

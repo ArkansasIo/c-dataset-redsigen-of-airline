@@ -14,6 +14,7 @@
 //   menus.{h,cpp}      top-level menu
 #include "menus.h"
 #include "storage.h"
+#include "util.h"
 
 int main()
 {
@@ -21,3 +22,9 @@ int main()
     start1 = acs::catalog_menu(start1);
     return 0;
 }
+
+namespace acs
+{
+    // save_and_exit() is implemented in menus.cpp, which owns the root list
+    // and the storage layer.
+} // namespace acs

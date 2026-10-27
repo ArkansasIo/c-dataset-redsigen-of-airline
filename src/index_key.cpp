@@ -14,10 +14,8 @@ namespace acs
     {
         std::printf(" Welcome to the Index Key List\n");
         std::printf("Please enter the Index Key\n");
-        drain_stdin();
         read_line(node->key_name, sizeof(node->key_name));
         std::printf("Please enter the Amount\n");
-        drain_stdin();
         read_line(node->cost, sizeof(node->cost));
         node->available = 1;
         return node;
@@ -74,7 +72,6 @@ namespace acs
 
         char key_name[80];
         std::printf("Please enter the index_key you want to delete\n");
-        drain_stdin();
         read_line(key_name, sizeof(key_name));
 
         index_key *count_node1, *count_node2 = nullptr, *temp;
@@ -133,18 +130,13 @@ namespace acs
     index_key *index_key_menu(index_key *start5)
     {
         std::printf("\n");
-        int choice;
         std::printf("Welcome to the Index Key menu\n");
         std::printf("Please enter your choice from the menu shown below\n");
         std::printf("1: Add an index key to this dataset\n");
         std::printf("2: Cancel an index key from this dataset\n");
         std::printf("3: Display the index key list for this dataset\n");
         std::printf("4: Return back to the dataset Menu\n");
-        if (std::scanf("%d", &choice) != 1)
-        {
-            drain_stdin();
-            choice = 0;
-        }
+        int choice = read_menu_choice();
 
         switch (choice)
         {

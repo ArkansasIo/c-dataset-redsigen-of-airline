@@ -17,7 +17,6 @@ namespace acs
         std::printf(" Welcome To RecordBase Database System\n");
         std::printf("Please enter the catalog Name\n");
         std::printf("\n");
-        drain_stdin();
         node->catalogname = new char[kMaxNameLen];
         read_line(node->catalogname, static_cast<int>(kMaxNameLen));
         node->node1 = nullptr;
@@ -73,7 +72,6 @@ namespace acs
 
         char catalogname[80];
         std::printf("\nPlease enter the  name of the catalog you want to delete\n");
-        drain_stdin();
         read_line(catalogname, 80);
 
         catalog *count_node1, *count_node2 = nullptr, *temp;
@@ -129,7 +127,6 @@ namespace acs
         char catalogname[80];
         std::printf("\nWelcome to the dataset List Menu\n");
         std::printf("Enter the catalog name you wish to check\n");
-        drain_stdin();
         read_line(catalogname, 80);
 
         catalog *count;

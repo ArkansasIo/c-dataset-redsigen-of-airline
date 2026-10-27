@@ -17,42 +17,34 @@ namespace acs
         std::printf(" Welcome to the entry List\n");
 
         std::printf("Please enter entry Name Suffix\n");
-        drain_stdin();
         node->name_suffix = new char[kMaxSuffix];
         read_line(node->name_suffix, static_cast<int>(kMaxSuffix));
 
         std::printf("Please enter entry Full Name\n");
-        drain_stdin();
         node->name = new char[kMaxNameLen];
         read_line(node->name, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter entry ID\n"); // unique key
-        drain_stdin();
         node->entry_id = new char[kMaxIdLen];
         read_line(node->entry_id, static_cast<int>(kMaxIdLen));
 
         std::printf("Please enter entry Address\n");
-        drain_stdin();
         node->address = new char[kMaxNameLen];
         read_line(node->address, static_cast<int>(kMaxNameLen));
 
         std::printf("Please enter entry City\n");
-        drain_stdin();
         node->city = new char[30];
         read_line(node->city, 30);
 
         std::printf("Please enter Gender\n");
-        drain_stdin();
         node->gender = new char[10];
         read_line(node->gender, 10);
 
         std::printf("Please enter Date Of Birth\n");
-        drain_stdin();
         node->data_of_birth = new char[10];
         read_line(node->data_of_birth, 10);
 
         std::printf("Please enter Weight\n");
-        drain_stdin();
         node->weight = new char[10];
         read_line(node->weight, 10);
 
@@ -174,18 +166,13 @@ namespace acs
     entry *entry_menu(entry *start3)
     {
         std::printf("\n");
-        int choice;
         std::printf("Welcome to the entry menu\n");
         std::printf("Please enter your choice from the menu shown below\n");
         std::printf("1: Add a entry to this dataset\n");
         std::printf("2: Delete a entry from this dataset\n");
         std::printf("3: Display the entry list for this dataset\n");
         std::printf("4: Return back to the dataset Menu\n");
-        if (std::scanf("%d", &choice) != 1)
-        {
-            drain_stdin();
-            choice = 0;
-        }
+        int choice = read_menu_choice();
 
         switch (choice)
         {

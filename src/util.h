@@ -10,13 +10,38 @@
 namespace acs
 {
 
-    // Read one line from stdin into a buffer and strip the newline.
+    // Flush the rest of the current input line.
+    // Does nothing on EOF so the stream stays in its end state.
+    inline void drain_stdin()
+    {
+        int c = std::fgetc(stdin);
+        if (c == EOF || c == '\n')
+            return;
+        while ((c = std::fgetc(stdin)) != '\n' && c != EOF)
+        {
+        }
+    }
+
+    // Read one line from stdin.
+    // A leftover blank line (e.g. the newline left by a previous scanf) is
+    // skipped automatically, so callers never need a manual drain first.
     // Returns the buffer for chaining.
     inline char *read_line(char *buffer, int size)
     {
-        if (std::fgets(buffer, size, stdin) == nullptr)
-            buffer[0] = 0;
-        buffer[std::strcspn(buffer, "\n")] = 0;
+        while (std::fgets(buffer, size, stdin) != nullptr)
+        {
+            std::size_t len = std::strlen(buffer);
+            if (len > 0 && buffer[len - 1] == '\n')
+            {
+                buffer[--len] = 0; // strip the newline
+                if (len == 0)
+                    continue; // blank line: skip and read again
+                break; // normal data line
+            }
+            if (len < static_cast<std::size_t>(size) - 1)
+                break; // EOF without trailing newline: keep what we got
+            drain_stdin(); // line longer than buffer: discard rest, retry
+        }
         return buffer;
     }
 
@@ -35,13 +60,29 @@ namespace acs
         return dst;
     }
 
-    // Flush whatever is left on the input line before a scanf/fgets pair.
-    inline void drain_stdin()
+    // Save the current state to database.dat and exit (used on EOF or
+    // when input is closed so the program never spins on a dead stream).
+    void save_and_exit();
+
+    // Read a menu choice. Returns 0 on invalid input; on EOF (input closed)
+    // saves and exits so the program cannot loop forever.
+    inline int read_menu_choice()
     {
-        int c;
-        while ((c = std::fgetc(stdin)) != '\n' && c != EOF)
+        int choice;
+        if (std::scanf("%d", &choice) != 1)
         {
+            if (std::feof(stdin))
+                save_and_exit();
+            drain_stdin();
+            choice = 0;
         }
+        else
+        {
+            // scanf leaves the trailing newline; consume it so the next
+            // read_line() starts on a fresh data line.
+            drain_stdin();
+        }
+        return choice;
     }
 
 } // namespace acs
